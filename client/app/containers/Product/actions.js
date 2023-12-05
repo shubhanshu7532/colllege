@@ -35,6 +35,8 @@ import { allFieldsValidation } from '../../utils/validation';
 export const productChange = (name, value) => {
   let formData = {};
   formData[name] = value;
+  console.log(formData)
+  console.log(value)
   return {
     type: PRODUCT_CHANGE,
     payload: formData
@@ -79,19 +81,20 @@ export const filterProducts = (n, v) => {
   return async (dispatch, getState) => {
     try {
       n ?? dispatch({ type: RESET_ADVANCED_FILTERS });
-
+      console.log("coming inside v", v)
       dispatch(setProductLoading(true));
       const advancedFilters = getState().product.advancedFilters;
       let payload = productsFilterOrganizer(n, v, advancedFilters);
       dispatch({ type: SET_ADVANCED_FILTERS, payload });
       const sortOrder = getSortOrder(payload.order);
       payload = { ...payload, sortOrder };
-
+      console.log(payload)
       const response = await axios.get(`${API_URL}/product/list`, {
         params: {
           ...payload
         }
       });
+      console.log(response)
       const { products, totalPages, currentPage, count } = response.data;
 
       dispatch({
@@ -242,7 +245,7 @@ export const addProduct = () => {
       const rules = {
         sku: 'required|alpha_dash',
         name: 'required',
-        description: 'required|max:200',
+        description: 'required|max:1000',
         quantity: 'required|numeric',
         price: 'required|numeric',
         taxable: 'required',
@@ -272,6 +275,7 @@ export const addProduct = () => {
               : null
             : brands[1].value
       };
+      console.log("called from new product", newProduct)
 
       const { isValid, errors } = allFieldsValidation(newProduct, rules, {
         'required.sku': 'Sku is required.',
@@ -298,12 +302,15 @@ export const addProduct = () => {
             if (key === 'brand' && newProduct[key] === null) {
               continue;
             } else {
+              if (key === 'image') {
+                formData.append('image', newProduct[key]);
+              }
               formData.set(key, newProduct[key]);
             }
           }
         }
       }
-
+      console.log("this is the formData", formData)
       const response = await axios.post(`${API_URL}/product/add`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });

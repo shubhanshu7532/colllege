@@ -14,8 +14,10 @@ import Newsletter from '../../../containers/Newsletter';
 const Footer = () => {
   const infoLinks = [
     { id: 0, name: 'Contact Us', to: '/contact' },
-    { id: 1, name: 'Sell With Us', to: '/sell' },
-    { id: 2, name: 'Shipping', to: '/shipping' }
+    // { id: 1, name: 'Sell With Us', to: '/sell' },
+    // { id: 2, name: 'Shipping', to: '/shipping' },
+    { id: 1, name: 'About Us', to: '/about' },
+    { id: 2, name: 'Refund policy', to: '/refund' },
   ];
 
   const footerBusinessLinks = (
@@ -49,23 +51,23 @@ const Footer = () => {
               <ul>{footerLinks}</ul>
             </div>
           </div>
-          <div className='footer-block'>
+          {/* <div className='footer-block'>
             <div className='block-title'>
               <h3 className='text-uppercase'>Links</h3>
             </div>
             <div className='block-content'>
               <ul>{footerLinks}</ul>
             </div>
-          </div>
+          </div> */}
           <div className='footer-block'>
             <div className='block-title'>
-              <h3 className='text-uppercase'>Newsletter</h3>
-              <Newsletter />
+              {/* <h3 className='text-uppercase'>Newsletter</h3> */}
+              {/* <Newsletter /> */}
             </div>
           </div>
         </div>
         <div className='footer-copyright'>
-          <span>© {new Date().getFullYear()} MERN Store</span>
+          <span>© {new Date().getFullYear()} SSX technology</span>
         </div>
         <ul className='footer-social-item'>
           <li>

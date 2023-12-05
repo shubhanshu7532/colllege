@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpackMerge = require('webpack-merge');
 const Dotenv = require('dotenv-webpack');
 
@@ -65,7 +66,16 @@ const config = {
     new HtmlWebpackPlugin({
       template: path.join(CURRENT_WORKING_DIR, 'public/index.html'),
       inject: true
-    })
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: CURRENT_WORKING_DIR,
+          to: 'public/index.html'
+        },
+        // Add more patterns as needed
+      ],
+    }),
   ],
   devServer: {
     port: 8080,

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const Mongoose = require('mongoose');
+const cloudinary = require('cloudinary')
+const saveMediaFile = require("../../services/media.js")
+const uploadController = require("../../services/upload.js")
 
 // Bring in Models & Utils
 const Product = require('../../models/product');
@@ -18,7 +21,9 @@ const {
 const { ROLES } = require('../../constants');
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
+const fs = require("fs").promises
+const path = require("path")
 
 // fetch product slug api
 router.get('/item/:slug', async (req, res) => {
@@ -261,6 +266,26 @@ router.post(
   upload.single('image'),
   async (req, res) => {
     try {
+      const buffers = req.file.buffer;
+      const originalnames = req.file.originalname;
+
+      // Define the path where the file will be saved in the public folder
+      const publicFolderPath = path.join(__dirname, 'public');
+      const filePath = path.join(publicFolderPath, originalnames);
+
+      // Create the public folder if it doesn't exist
+      await fs.mkdir(publicFolderPath, { recursive: true });
+      console.log(filePath, buffers)
+      // Write the file buffer to the public folder
+      await fs.writeFile(filePath, buffers);
+      console.log("chekpoint 2")
+
+      // Provide the relative path in the response
+      const relativePath = path.join('public', originalnames);
+      console.log("chekpoint 2")
+      console.log(relativePath)
+
+
       const sku = req.body.sku;
       const name = req.body.name;
       const description = req.body.description;
@@ -269,34 +294,77 @@ router.post(
       const taxable = req.body.taxable;
       const isActive = req.body.isActive;
       const brand = req.body.brand;
-      const image = req.file;
+      const image = req.body.image;
+      console.log("=============", req.file)
+
+      const { originalname, mimetype, buffer } = req.file;
+
+
+      // const writestream = gfs.createWriteStream({
+      //   filename: originalname,
+      //   contentType: mimetype,
+      // });
+
+      // writestream.write(buffer);
+      // writestream.end();
+
+      // writestream.on('finish', () => {
+      //   res.status(200).json({ message: 'File uploaded successfully' });
+      // });
+
+      // // const imageData = Buffer.from(req.body.image, 'binary');
+      // // console.log(imageData)
+      // let file = req.file
+      // let result
+      // const bufferString = req.file.buffer.toString('hex');
+      // //console.log("thiss is lkasjdlkasjflaksj", bufferString)
+
+
+      // return
+
+
+
+
+      // console.log("chekpoint 1", req.file.path)
+      const imagelink = await cloudinary.v2.uploader.upload(filePath, {
+        folder: 'products'
+      });
+      console.log(imagelink)
+
 
       if (!sku) {
         return res.status(400).json({ error: 'You must enter sku.' });
       }
+
 
       if (!description || !name) {
         return res
           .status(400)
           .json({ error: 'You must enter description & name.' });
       }
+      console.log("chekpoint 3")
 
       if (!quantity) {
         return res.status(400).json({ error: 'You must enter a quantity.' });
       }
 
+      console.log("chekpoint 4")
       if (!price) {
         return res.status(400).json({ error: 'You must enter a price.' });
       }
 
+      console.log("chekpoint 5")
       const foundProduct = await Product.findOne({ sku });
 
+      console.log("chekpoint 6")
       if (foundProduct) {
         return res.status(400).json({ error: 'This sku is already in use.' });
       }
 
-      const { imageUrl, imageKey } = await s3Upload(image);
+      //TODO: ENTER THE IMAGE IN DATABASE
+      //const { imageUrl, imageKey } = await s3Upload(image);
 
+      console.log("chekpoint 8")
       const product = new Product({
         sku,
         name,
@@ -306,20 +374,23 @@ router.post(
         taxable,
         isActive,
         brand,
-        imageUrl,
-        imageKey
+        imageUrl: imagelink.url,
+        imageKey: imagelink.api_key
       });
 
+      console.log("chekpoint 9")
       const savedProduct = await product.save();
 
+      console.log("chekpoint 10")
       res.status(200).json({
         success: true,
         message: `Product has been added successfully!`,
         product: savedProduct
       });
     } catch (error) {
+      console.log(error)
       return res.status(400).json({
-        error: 'Your request could not be processed. Please try again.'
+        error: 'Your request could not be processed. Please try again. '
       });
     }
   }
